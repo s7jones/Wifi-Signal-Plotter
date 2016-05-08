@@ -10,6 +10,9 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
+CONST_TIME_INTERVAL = 10
+CONST_NUM_SAMPLES = 100
+
 plt.ion
 
 fig = plt.figure()
@@ -17,51 +20,86 @@ ax = fig.add_subplot(111)
 
 t = time.time()
 
-avg = np.empty(shape=(2, 0))
-std = np.empty(shape=(2, 0))
+#avg = np.empty(shape=(2, 0))
+#std = np.empty(shape=(2, 0))
+#avg = np.array([])
+#std = np.array([])
+
+arrayCreation = False;
 
 times = np.empty(shape=(0))
+
+interfaceDict = dict()
+interfaceCount = 0;
 
 while True:
 
 	dataArray = []
 
-	for a in range(0, 100):	#  x in [beginning, end)
+	for a in range(0, CONST_NUM_SAMPLES):	#  x in [beginning, end)
 		p = subprocess.Popen("iwconfig", stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		out = p.stdout.read().decode()
 
 		m = re.findall('(wlan[0-9]+).*?Signal level=(-[0-9]+) dBm', out, re.DOTALL)
-
-
 		p.communicate()
 		elapsed = time.time() - t
 
+		if type(m) is not list:
+			raise Exception('not a list')
+		for mTuple in m:
+			if type(mTuple) is not tuple:
+				raise Exception('not a tuple')
+			if len(mTuple) != 2:
+				raise Exception('number of regex matches not 2')
+			if len(mTuple) % 2 != 0: # useful if the regex results for multiple interfaces is in a single tuple
+				raise Exception('number of regex matches not divisible by 2')
+			interfaceName = mTuple[0]
+			if interfaceName not in interfaceDict:
+				#interfaceDict.add(mTuple[0])
+				interfaceDict[interfaceName] = interfaceCount
+				interfaceCount += 1
+
+			#for mData in mTuple:
+				#print(mData)
 		dataArray.append(m)
+		time.sleep(CONST_TIME_INTERVAL/CONST_NUM_SAMPLES)
 
-
-		plt.pause(0.1)
-
-	counts = [0, 0]
+	print(interfaceDict)
+	print(len(interfaceDict))
+	counts = np.zeros(len(interfaceDict))
+	#counts = [0, 0]
 	sortedData = []
-	sortedData.append([])
-	sortedData.append([])
+	for i in range(0, len(interfaceDict)):
+		sortedData.append([])
+
+	if len(sortedData) != interfaceCount:
+		raise Exception('data table and number of devices not in agreement')
+
 	for dataTuples in dataArray:
 		for data in dataTuples:
-			if data[0] == 'wlan0':
-				currentCount = counts[0]
-				sortedData[0].append(data[1])
-				counts[0] += 1
-			elif data[0] == 'wlan1':
-				currentCount = counts[1]
-				sortedData[1].append(data[1])
-				counts[1] += 1
-			else:
-				raise Exception('reached else of if statement')
+			switchResult = interfaceDict.get(data[0])
+			#print('switchResult: ' + str(switchResult))
+			currentCount = counts[switchResult]
+			sortedData[switchResult].append(data[1])
+			counts[switchResult] += 1
+			# if data[0] == 'wlan0':
+			# 	currentCount = counts[0]
+			# 	sortedData[0].append(data[1])
+			# 	counts[0] += 1
+			# elif data[0] == 'wlan1':
+			# 	currentCount = counts[1]
+			# 	sortedData[1].append(data[1])
+			# 	counts[1] += 1
+			# else:
+			# 	raise Exception('reached else of if statement')
+
+	#print(counts)
 
 	numArray = []
-	numArray.append([])
-	numArray.append([])
+	for i in range(0, len(interfaceDict)):
+		numArray.append([])
+
 	index = 0
 	for dataSet in sortedData:
 		for sdata in dataSet:
@@ -70,20 +108,35 @@ while True:
 
 
 
-	lineSet = []
-	lineSet.append('b-')
-	lineSet.append('g-')
+	#lineSet = []
+	#for i in range(0, len(interfaceDict)):
+	#lineSet.append('b-')
+	#lineSet.append('g-')
+
+	if 'avg' not in locals():
+		#avg.reshape(len(interfaceDict), 0)
+		avg = np.empty(shape=(len(interfaceDict), 0))
+		print(avg.shape)
+
+	
+	if 'std' not in locals():
+		#std.reshape(len(interfaceDict), 0)
+		std = np.empty(shape=(len(interfaceDict), 0))
+		print(std.shape)
+
 	index = 0
-	avgCurrent = np.zeros((2, 1))
-	stdCurrent = np.zeros((2, 1))
+	avgCurrent = np.zeros((len(interfaceDict), 1))
+	stdCurrent = np.zeros((len(interfaceDict), 1))
 	for numSet in numArray:
 		avgCurrent[index] = np.mean(numSet)
 		stdCurrent[index] = np.std(numSet)
 		index += 1
 
-	print(avgCurrent)
-	print(stdCurrent)
+	#print(avgCurrent)
+	#print(stdCurrent)
 
+	print(avg.shape)
+	print(avgCurrent.shape)
 	avg = np.append(avg, avgCurrent, axis=1)
 	std = np.append(std, stdCurrent, axis=1)
 
@@ -92,8 +145,10 @@ while True:
 	ax.clear()
 	plt.xlabel('Time [s]')
 	plt.ylabel('Signal Level [dBm]')
-	plt.errorbar(times[:], avg[0, :], yerr=std[0, :], label="wlan0 (usb)")
-	plt.errorbar(times[:], avg[1, :], yerr=std[1, :], label="wlan1 (internal)")
+	for key, value in interfaceDict.items():
+		plt.errorbar(times[:], avg[value, :], yerr=std[value, :], label=key)	
+	#plt.errorbar(times[:], avg[0, :], yerr=std[0, :], label="wlan0 (usb)")
+	#plt.errorbar(times[:], avg[1, :], yerr=std[1, :], label="wlan1 (internal)")
 	plt.legend()
 	print("\n\n")
 
