@@ -20,17 +20,12 @@ ax = fig.add_subplot(111)
 
 t = time.time()
 
-#avg = np.empty(shape=(2, 0))
-#std = np.empty(shape=(2, 0))
-#avg = np.array([])
-#std = np.array([])
-
-arrayCreation = False;
+arrayCreation = False
 
 times = np.empty(shape=(0))
 
 interfaceDict = dict()
-interfaceCount = 0;
+interfaceCount = 0
 
 while True:
 
@@ -56,19 +51,14 @@ while True:
 				raise Exception('number of regex matches not divisible by 2')
 			interfaceName = mTuple[0]
 			if interfaceName not in interfaceDict:
-				#interfaceDict.add(mTuple[0])
 				interfaceDict[interfaceName] = interfaceCount
 				interfaceCount += 1
 
-			#for mData in mTuple:
-				#print(mData)
 		dataArray.append(m)
 		time.sleep(CONST_TIME_INTERVAL/CONST_NUM_SAMPLES)
 
-	print(interfaceDict)
-	print(len(interfaceDict))
 	counts = np.zeros(len(interfaceDict))
-	#counts = [0, 0]
+
 	sortedData = []
 	for i in range(0, len(interfaceDict)):
 		sortedData.append([])
@@ -79,22 +69,10 @@ while True:
 	for dataTuples in dataArray:
 		for data in dataTuples:
 			switchResult = interfaceDict.get(data[0])
-			#print('switchResult: ' + str(switchResult))
 			currentCount = counts[switchResult]
 			sortedData[switchResult].append(data[1])
 			counts[switchResult] += 1
-			# if data[0] == 'wlan0':
-			# 	currentCount = counts[0]
-			# 	sortedData[0].append(data[1])
-			# 	counts[0] += 1
-			# elif data[0] == 'wlan1':
-			# 	currentCount = counts[1]
-			# 	sortedData[1].append(data[1])
-			# 	counts[1] += 1
-			# else:
-			# 	raise Exception('reached else of if statement')
 
-	#print(counts)
 
 	numArray = []
 	for i in range(0, len(interfaceDict)):
@@ -106,23 +84,11 @@ while True:
 			numArray[index].append(int(sdata))
 		index += 1
 
-
-
-	#lineSet = []
-	#for i in range(0, len(interfaceDict)):
-	#lineSet.append('b-')
-	#lineSet.append('g-')
-
 	if 'avg' not in locals():
-		#avg.reshape(len(interfaceDict), 0)
 		avg = np.empty(shape=(len(interfaceDict), 0))
-		print(avg.shape)
 
-	
 	if 'std' not in locals():
-		#std.reshape(len(interfaceDict), 0)
 		std = np.empty(shape=(len(interfaceDict), 0))
-		print(std.shape)
 
 	index = 0
 	avgCurrent = np.zeros((len(interfaceDict), 1))
@@ -132,11 +98,6 @@ while True:
 		stdCurrent[index] = np.std(numSet)
 		index += 1
 
-	#print(avgCurrent)
-	#print(stdCurrent)
-
-	print(avg.shape)
-	print(avgCurrent.shape)
 	avg = np.append(avg, avgCurrent, axis=1)
 	std = np.append(std, stdCurrent, axis=1)
 
@@ -146,10 +107,8 @@ while True:
 	plt.xlabel('Time [s]')
 	plt.ylabel('Signal Level [dBm]')
 	for key, value in interfaceDict.items():
-		plt.errorbar(times[:], avg[value, :], yerr=std[value, :], label=key)	
-	#plt.errorbar(times[:], avg[0, :], yerr=std[0, :], label="wlan0 (usb)")
-	#plt.errorbar(times[:], avg[1, :], yerr=std[1, :], label="wlan1 (internal)")
+		plt.errorbar(times[:], avg[value, :], yerr=std[value, :], label=key)
 	plt.legend()
-	print("\n\n")
+	print('\n\n')
 
 	plt.pause(1)
