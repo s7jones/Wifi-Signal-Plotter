@@ -14,7 +14,7 @@ import numpy as np
 CONST_TIME_INTERVAL = 10
 CONST_NUM_SAMPLES = 100
 
-plt.ion
+plt.ion()
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
