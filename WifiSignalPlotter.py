@@ -117,7 +117,12 @@ while True:
 
 	ax.clear()
 	plt.xlabel('Time [s]')
-	plt.ylabel('Signal Level [dBm]')
+	if platform.system() == 'Linux':
+		plt.ylabel('Signal Level [dBm]')
+	elif platform.system() == 'Windows':
+		plt.ylabel('Signal Level [%]')
+	else:
+			raise Exception('reached else of if statement')
 	for key, value in interfaceDict.items():
 		plt.errorbar(times[:], avg[value, :], yerr=std[value, :], label=key)
 	plt.legend()
