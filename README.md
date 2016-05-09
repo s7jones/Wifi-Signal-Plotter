@@ -1,9 +1,14 @@
 # Wifi-Signal-Plotter
-Simple example Python script for comparing Wifi Signal strength between Wifi adaptors in Linux
+Simple example Python script for comparing Wifi Signal strength between Wifi adaptors in Linux or Windows
 
-![image](ExamplePlot.png)
+**Linux**
 
-Tested on Python 3.4
+<img src="ExamplePlotInLinux.png" height="250">
+**Windows**
+
+<img src="ExamplePlotInWindows.png" height="250">
+
+Tested on Python 3.4/3.5
 
 Requirements:
   - subprocess module
