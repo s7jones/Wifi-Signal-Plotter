@@ -14,6 +14,8 @@ import numpy as np
 CONST_TIME_INTERVAL = 10
 CONST_NUM_SAMPLES = 100
 
+measuringError = 0.0
+
 plt.ion()
 
 fig = plt.figure()
@@ -99,19 +101,27 @@ while True:
 	if 'avg' not in locals():
 		avg = np.empty(shape=(len(interfaceDict), 0))
 
-	if 'std' not in locals():
-		std = np.empty(shape=(len(interfaceDict), 0))
+	if 'err' not in locals():
+		err = np.empty(shape=(len(interfaceDict), 0))
+
+	if platform.system() == 'Linux':
+		measuringError = 0.5
+	elif platform.system() == 'Windows':
+		measuringError = 0.5
+	else:
+		raise Exception('reached else of if statement')
 
 	index = 0
 	avgCurrent = np.zeros((len(interfaceDict), 1))
-	stdCurrent = np.zeros((len(interfaceDict), 1))
+	errCurrent = np.zeros((len(interfaceDict), 1))
 	for numSet in numArray:
 		avgCurrent[index] = np.mean(numSet)
-		stdCurrent[index] = np.std(numSet)
+		combinedErr = np.sqrt(np.std(numSet)**2 + measuringError**2)
+		errCurrent[index] = combinedErr
 		index += 1
 
 	avg = np.append(avg, avgCurrent, axis=1)
-	std = np.append(std, stdCurrent, axis=1)
+	err = np.append(err, errCurrent, axis=1)
 
 	times = np.append(times, elapsed)
 
@@ -124,7 +134,7 @@ while True:
 	else:
 			raise Exception('reached else of if statement')
 	for key, value in interfaceDict.items():
-		plt.errorbar(times[:], avg[value, :], yerr=std[value, :], label=key)
+		plt.errorbar(times[:], avg[value, :], yerr=err[value, :], label=key)
 	plt.legend()
 	print('\n\n')
 
