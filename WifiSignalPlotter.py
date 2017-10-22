@@ -15,6 +15,7 @@ CONST_TIME_INTERVAL = 10
 CONST_NUM_SAMPLES = 100
 MEASURING_ERROR_WINDOWS = 0.5
 MEASURING_ERROR_LINUX = 0.5
+MEASURING_ERROR_MAC = 0.5
 
 def main():
 	t, times, avg, err, interfaceDict = initialize_data()
@@ -48,6 +49,8 @@ def update_plot(fig, ax, times, avg, err, interfaceDict):
 		plt.ylabel('Signal Level [dBm]')
 	elif platform.system() == 'Windows':
 		plt.ylabel('Signal Level [%]')
+	elif platform.system() == 'Darwin':
+		plt.ylabel('Signal Level [RSSI]')
 	else:
 		raise Exception('reached else of if statement')
 	for key, value in interfaceDict.items():
@@ -97,6 +100,8 @@ def get_data(t, times, avg, err, interfaceDict):
 		measuringError = MEASURING_ERROR_LINUX
 	elif platform.system() == 'Windows':
 		measuringError = MEASURING_ERROR_WINDOWS
+	elif platform.system() == 'Darwin':
+		measuringError = MEASURING_ERROR_MAC
 	else:
 		raise Exception('reached else of if statement')
 
@@ -121,6 +126,8 @@ def read_data_from_cmd():
 		p = subprocess.Popen("iwconfig", stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	elif platform.system() == 'Windows':
 		p = subprocess.Popen("netsh wlan show interfaces", stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	elif platform.system() == 'Darwin':
+		p = subprocess.Popen("/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I", stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	else:
 		raise Exception('reached else of if statement')
 	out = p.stdout.read().decode()
@@ -129,6 +136,10 @@ def read_data_from_cmd():
 		m = re.findall('(wlan[0-9]+).*?Signal level=(-[0-9]+) dBm', out, re.DOTALL)
 	elif platform.system() == 'Windows':
 		m = re.findall('Name.*?:.*?([A-z0-9 ]*).*?Signal.*?:.*?([0-9]*)%', out, re.DOTALL)
+	elif platform.system == 'Darwin':
+		m = re.findall('agrCtlRSSI:.*?([-0-9]+).*?[^B]SSID:.*?([A-z0-9_]+)', out, re.DOTALL)
+		# https://stackoverflow.com/questions/13384841/swap-values-in-a-tuple-list-inside-a-list-in-python
+		[(t[1], t[0]) for t in m]
 	else:
 		raise Exception('reached else of if statement')
 
