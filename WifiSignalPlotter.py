@@ -54,6 +54,7 @@ def update_plot(fig, ax, times, avg, err, interfaceDict):
 		plt.errorbar(times[:], avg[value, :], yerr=err[value, :], label=key)
 	plt.legend()
 	print('\n\n')
+	plt.pause(0.0001)
 	plt.show()
 
 
