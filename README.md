@@ -3,7 +3,7 @@ Simple example Python script for comparing Wifi Signal strength between Wifi ada
 
 <img src="ExamplePlotInLinux.png" height="250">
 
-How to run:
+## How to run:
   - From Python Shell:
   ```python
   >>> import WifiSignalPlotter
@@ -19,10 +19,10 @@ How to run:
   python3.5 WifiSignalPlotter.py
   ```
 
-Tested on: 
+## Tested on: 
   - Windows and Linux.
   - Python 3.4/3.5.
 
-Requirements:
+## Requirements:
   - subprocess module.
   - numpy and matplotlib libraries.
