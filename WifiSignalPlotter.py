@@ -16,12 +16,14 @@ CONST_NUM_SAMPLES = 100
 MEASURING_ERROR_WINDOWS = 0.5
 MEASURING_ERROR_LINUX = 0.5
 
-def main():
+def main(output='percentage'):
+	if output != 'percentage' and output != 'dBm':
+		raise Exception('output must be either percentage or dBm')
 	t, times, avg, err, interfaceDict = initialize_data()
 	fig, ax = initialize_plot()
 	while True:
 		times, avg, err, interfaceDict = get_data(t, times, avg, err, interfaceDict)
-		update_plot(fig, ax, times, avg, err, interfaceDict)
+		update_plot(fig, ax, times, avg, err, output, interfaceDict)
 		plt.pause(1)
 
 def initialize_data():
@@ -40,17 +42,39 @@ def initialize_plot():
 	return fig, ax
 
 
-def update_plot(fig, ax, times, avg, err, interfaceDict):
+def update_plot(fig, ax, times, avg, err, output, interfaceDict):
 	ax.clear()
 	ax.set_title('Wifi Signal over Time')
 	plt.xlabel('Time [s]')
 	if platform.system() == 'Linux':
-		plt.ylabel('Signal Level [dBm]')
+		if output == 'percentage':
+			plt.ylabel('Signal Level [%]')
+			output = 'percentage-linux'
+		else:
+			plt.ylabel('Signal Level [dBm]')
 	elif platform.system() == 'Windows':
-		plt.ylabel('Signal Level [%]')
+		if output == 'dBm':
+			plt.ylabel('Signal Level [dBm]')
+			output = 'dBm-windows'
+		else:
+			plt.ylabel('Signal Level [%]')
 	else:
 		raise Exception('reached else of if statement')
 	for key, value in interfaceDict.items():
+		if output == 'percentage-linux':
+			if value <= -100:
+				value = 0
+			elif value >= -50:
+				value = 100
+			else:
+				value = 2 * (value +100)
+		elif output == 'dBm-windows':
+			if value == 0:
+				value = -100
+			elif value == 100:
+				value = -50
+			else:
+				value = (value /2 ) - 100 
 		plt.errorbar(times[:], avg[value, :], yerr=err[value, :], label=key)
 	plt.legend()
 	print('\n\n')
@@ -152,6 +176,8 @@ def sort_regex_results(m, interfaceDict):
 			interfaceDict[interfaceName] = len(interfaceDict)
 
 	return interfaceDict
+
+
 
 if __name__ == "__main__":
 	main()
